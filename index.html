@@ -41,6 +41,11 @@ p{line-height:1.6;color:#3a453e;margin:0 0 14px;}
 .task-card .eyebrow{color:var(--accent);}
 .task-card p{color:#1c3629;margin-bottom:0;}
 .task-card .clabe{display:inline-block;margin-top:10px;background:#fff;border:1px solid #cfe0d5;border-radius:8px;padding:8px 12px;font-size:13px;}
+.clabe-row{display:flex;align-items:center;gap:8px;margin-top:10px;}
+.clabe-row .clabe{margin-top:0;}
+.clabe-copy-btn{flex-shrink:0;background:#fff;border:1px solid #cfe0d5;color:var(--accent);border-radius:8px;padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;transition:.15s;}
+.clabe-copy-btn:hover{border-color:var(--accent);}
+.clabe-copy-btn.copied{background:var(--accent);color:#fff;border-color:var(--accent);}
 
 label.field{display:block;font-size:12.5px;color:var(--muted);margin:0 0 6px;font-weight:500;}
 input[type=text], textarea{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-family:inherit;font-size:14.5px;background:var(--paper);color:var(--ink);resize:vertical;}
@@ -208,7 +213,10 @@ button{font-family:inherit;font-size:14.5px;font-weight:600;border-radius:10px;p
           <div class="eyebrow">Situación</div>
           <p>Un compañero te pasó sus datos para que le regreses un préstamo. Nunca le has transferido antes, así que tendrás que darlo de alta. Envíale <b>$1,200.00 MXN</b> con el concepto <b>"Préstamo"</b> a:</p>
           <p style="margin-bottom:0;"><b>Roberto Salinas</b> · Banorte</p>
-          <div class="clabe mono">072180001234567895</div>
+          <div class="clabe-row">
+            <div class="clabe mono" id="t2-clabe-text">072180001234567895</div>
+            <button type="button" class="clabe-copy-btn" onclick="copyClabe(this)">Copiar</button>
+          </div>
         </div>
         <button class="btn-ghost" style="width:100%;" onclick="toggleInfo('t2')">Ocultar y continuar</button>
       </div>
@@ -254,7 +262,7 @@ button{font-family:inherit;font-size:14.5px;font-weight:600;border-radius:10px;p
       <div class="task-info-panel" id="info-t3">
         <div class="task-card">
           <div class="eyebrow">Situación</div>
-          <p style="margin-bottom:0;">Estás en un negocio y te piden pagar escaneando un código QR. Usa la opción de escanear (ícono arriba a la derecha, en la pantalla principal) y completa el pago. El monto y el beneficiario los trae el código — no tienes que escribir nada. La tarea termina cuando veas el comprobante en pantalla.</p>
+          <p style="margin-bottom:0;">Estás en un negocio y te piden pagar escaneando un código QR. Encuentra la opción de pago con código QR / CoDi y complétalo. El monto y el beneficiario los trae el código — no tienes que escribir nada. La tarea termina cuando veas el comprobante en pantalla.</p>
         </div>
         <button class="btn-ghost" style="width:100%;" onclick="toggleInfo('t3')">Ocultar y continuar</button>
       </div>
@@ -433,6 +441,27 @@ function fitPhone(token){
 
 function toggleInfo(token){
   document.getElementById('info-' + token).classList.toggle('open');
+}
+
+// Copia la CLABE de la tarjeta de situación al portapapeles. Usa el mismo
+// truco de textarea temporal + execCommand('copy') que el botón "Copiar
+// respuestas" de la pantalla de agradecimiento, porque navigator.clipboard
+// puede no tener permiso dentro del sandbox del artifact.
+function copyClabe(btn){
+  const text = document.getElementById('t2-clabe-text').textContent.trim();
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.left = '-9999px';
+  document.body.appendChild(ta);
+  ta.select();
+  try{ document.execCommand('copy'); }catch(e){ /* ignorar */ }
+  document.body.removeChild(ta);
+
+  const original = btn.textContent;
+  btn.textContent = 'Copiado ✓';
+  btn.classList.add('copied');
+  setTimeout(()=>{ btn.textContent = original; btn.classList.remove('copied'); }, 1500);
 }
 
 const ORDER = ['intro','t1','t1-survey','t2','t2-survey','t3','t3-survey','final','thanks'];
